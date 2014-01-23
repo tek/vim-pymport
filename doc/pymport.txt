@@ -1,0 +1,30 @@
+*pymport.txt*       python autoimporter
+*pymport*
+===============================================================================
+CONTENTS                                                   *pymport-contents*
+
+    1. Intro........................................|pymport-intro|
+    2. Options......................................|pymport-options|
+
+===============================================================================
+INTRO                                                         *pymport-intro*
+
+pymport searches desired directories for the definition of a given python
+function or class and adds or manipulates an import at the proper location.
+
+===============================================================================
+OPTIONS                                                     *pymport-options*
+
+  |pymport_paths|..................A list of directories to be searched
+  |pymport_finder|.................The name of a vim function used for searching
+
+===============================================================================
+CREDITS                                                     *pymport-credits*
+
+Developed by Torsten Schmits <github.com/tek>. Distributed under the MIT
+license.
+
+Git repository:       https://github.com/tek/vim-pymport
+
+==============================================================================
+vim:ft=help:et:ts=2:sw=2:sts=2:norl
