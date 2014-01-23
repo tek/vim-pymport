@@ -2,6 +2,10 @@ if(!exists('*'.g:pymport_finder))
   let g:pymport_finder = 'pymport#ag'
 endif
 
+if(!exists('*'.g:pymport_formatter))
+  let g:pymport_formatter = 'pymport#format'
+endif
+
 function! pymport#warn(msg) "{{{
   echohl WarningMsg
   echo 'pymport: '.a:msg
@@ -78,8 +82,8 @@ endfunction "}}}
 
 function! pymport#best_match(imports, module) "{{{
   let package = pymport#package(a:module)
-  let last = a:imports[-1][0]
-  let best = [last, -1]
+  let last = get(a:imports, -1, [0])[0]
+  let best = len(a:imports) > 0 ? [last, -1] : [0, 0]
   for entry in a:imports
     if a:module == entry[1]
       let best = [entry[0], 1]
@@ -121,17 +125,17 @@ endfunction "}}}
 
 " TODO skip existing imports
 function! pymport#deploy(lineno, exact, target, name) "{{{
+  call pymport#goto_end_of_import(a:lineno)
   let import = 'from '.a:target['module'] .' import '. a:name
   let empty = ''
-  if a:exact == -1
-    execute a:lineno.'put =import'
-    execute a:lineno.'put =empty'
-  elseif a:exact
-    execute a:lineno.'normal! $'
-    call searchpair('(', '', ')')
+  if a:exact == 1
     substitute /\()\?\)$/\=', '.a:name .submatch(1)/
+    call call(g:pymport_formatter, [a:lineno])
   else
-    execute a:lineno.'put =import'
+    if a:exact == -1
+      put =empty
+    endif
+    put =import
   endif
 endfunction "}}}
 

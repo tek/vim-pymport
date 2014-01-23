@@ -8,6 +8,8 @@
 
 `pymport_paths` A list of directories to be searched
 `pymport_finder` The name of a vim function used for searching
+`pymport_formatter` The name of a vim function used for final formatting of the
+import lines
 
 ## License
 

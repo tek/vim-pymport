@@ -1,8 +1,10 @@
-describe 'pymport'
+let g:pymport_paths = [getcwd().'/t/data/foo']
+let g:pymport_finder = 'pymport#ag'
+let g:pymport_formatter = 'pymport#format'
+
+describe 'path resolution:'
 
   it 'finds a function'
-    let g:pymport_paths = [getcwd().'/t/data/foo']
-    let g:pymport_finder = 'pymport#ag'
     let ret = pymport#locations('foobar')
     Expect ret[1]['content'] != ret[0]['content']
     Expect ret[0]['module'] == 'bar.stuff'
@@ -36,10 +38,12 @@ describe 'pymport'
   end
 end
 
-describe 'locate and deploy'
+describe 'locate and deploy:'
 
   before
     edit ./t/data/target_location.py
+    set ft=python
+    set textwidth=79
     let g:name = 'Leptospirosis'
     let g:target = {
           \ 'path': 'thirdparty/muff.py',
@@ -63,13 +67,13 @@ describe 'locate and deploy'
     Expect exact == 1
     let g:target['module'] = 'unmatched.stuff'
     let [lineno, exact] = pymport#target_location(g:target, g:name)
-    Expect lineno == 8
+    Expect lineno == 10
     Expect exact == -1
   end
 
   it 'appends an import statement'
-    call pymport#deploy(8, -1, g:target, g:name)
-    Expect getline('10') == 'from '.g:target['module'].' import '.g:name
+    call pymport#deploy(10, -1, g:target, g:name)
+    Expect getline('13') == 'from '.g:target['module'].' import '.g:name
   end
 
   it 'inserts an import statement'
@@ -81,5 +85,12 @@ describe 'locate and deploy'
     let g:target['module'] = 'thirdparty.fluff'
     call pymport#deploy(6, 1, g:target, g:name)
     Expect getline('6') == 'from '.g:target['module'].' import Fluff, '.g:name
+  end
+
+  it 'appends a name to an existing import statement and exceeds the textwidth'
+    let g:target['module'] = 'fourthparty.mudule'
+    call pymport#deploy(9, 1, g:target, g:name)
+    let part = ' import (LooooooooooooongButNotLongEnough,'
+    Expect getline('9') == 'from '.g:target['module'].part
   end
 end
