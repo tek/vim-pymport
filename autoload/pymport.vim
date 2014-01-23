@@ -34,10 +34,10 @@ function! pymport#module(path, basedir) "{{{
   return substitute(path, '/', '.', 'g')
 endfunction "}}}
 
-function! pymport#ag(name, path) "{{{
+function! pymport#greplike(cmd, name, path) "{{{
   let files = []
   if filereadable(a:path) || isdirectory(a:path)
-    let output = system('ag -G ".*\.py" "^(class|def) '.a:name.'\(" '.a:path)
+    let output = system(a:cmd.' "^(class|def) '.a:name.'\(" '.a:path)
     for line in split(output, '\n')
       let fields = split(line, ':')
       call add(files, {
@@ -49,6 +49,14 @@ function! pymport#ag(name, path) "{{{
     endfor
   endif
   return files
+endfunction "}}}
+
+function! pymport#grep(name, path) "{{{
+  return pymport#greplike('grep -r --include="*.py"', a:name, a:path)
+endfunction "}}}
+
+function! pymport#ag(name, path) "{{{
+  return pymport#greplike('ag -G ".*\.py"', a:name, a:path)
 endfunction "}}}
 
 function! pymport#locations(name) "{{{
