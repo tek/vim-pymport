@@ -1,11 +1,3 @@
-if(!exists('*'.g:pymport_finder))
-  let g:pymport_finder = 'pymport#ag'
-endif
-
-if(!exists('*'.g:pymport_formatter))
-  let g:pymport_formatter = 'pymport#format'
-endif
-
 function! pymport#warn(msg) "{{{
   echohl WarningMsg
   echo 'pymport: '.a:msg
@@ -167,3 +159,11 @@ function! pymport#import(name) "{{{
     call pymport#warn('No match for "'.a:name.'"!')
   endif
 endfunction "}}}
+
+if(!exists('*'.g:pymport_finder))
+  let g:pymport_finder = 'pymport#ag'
+endif
+
+if(!exists('*'.g:pymport_formatter))
+  let g:pymport_formatter = 'pymport#format'
+endif
