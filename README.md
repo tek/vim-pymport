@@ -13,11 +13,14 @@ For an arbitrary identifier, `call pymport#import('name')`.
 ## Customization
 
 `pymport_paths` A list of directories to be searched
+
 `pymport_finder` The name of a vim function used for searching
+
 `pymport_formatter` The name of a vim function used for final formatting of the
 import lines
 
 If you want to search third-party packages, you could add a line like this to your config:
+
 `let g:pymport_paths += glob('$VIRTUAL_ENV/lib/python*/site-packages', 0, 1)`
 
 ## License
