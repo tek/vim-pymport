@@ -93,4 +93,18 @@ describe 'locate and deploy:'
     let part = ' import (LooooooooooooongButNotLongEnough,'
     Expect getline('9') == 'from '.g:target['module'].part
   end
+
+  it 'integration'
+    call pymport#import('Foobar')
+    Expect getline('13') == 'from bar.stuff import Foobar'
+  end
+end
+
+describe 'empty file:'
+  it 'place target in the first line'
+    0 put ='foo = 1'
+    call pymport#import('Foobar')
+    Expect getline('1') == 'from bar.stuff import Foobar'
+    Expect getline('3') == 'foo = 1'
+  end
 end

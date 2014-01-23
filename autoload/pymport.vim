@@ -102,7 +102,7 @@ function! pymport#target_location(target, name) "{{{
   function! Adder(imports) "{{{
     call add(a:imports, [line('.'), split(getline('.'))[1]])
   endfunction "}}}
-  global /\%(^from\|import\) / call Adder(imports)
+  silent global /\%(^from\|import\) / call Adder(imports)
   return pymport#best_match(imports, module)
 endfunction "}}}
 
@@ -125,17 +125,21 @@ endfunction "}}}
 
 " TODO skip existing imports
 function! pymport#deploy(lineno, exact, target, name) "{{{
-  call pymport#goto_end_of_import(a:lineno)
   let import = 'from '.a:target['module'] .' import '. a:name
-  let empty = ''
-  if a:exact == 1
-    substitute /\()\?\)$/\=', '.a:name .submatch(1)/
-    call call(g:pymport_formatter, [a:lineno])
+  if a:lineno == 0
+    0 put =''
+    0 put =import
   else
-    if a:exact == -1
-      put =empty
+    call pymport#goto_end_of_import(a:lineno)
+    if a:exact == 1
+      substitute /\()\?\)$/\=', '.a:name .submatch(1)/
+      call call(g:pymport_formatter, [a:lineno])
+    else
+      if a:exact == -1
+        put =''
+      endif
+      put =import
     endif
-    put =import
   endif
 endfunction "}}}
 
