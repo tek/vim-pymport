@@ -2,6 +2,7 @@ import re
 import itertools
 from os import path
 
+import thirdparty.fluff
 from thirdparty.stuff import Stuff
 from thirdparty.fluff import Fluff
 

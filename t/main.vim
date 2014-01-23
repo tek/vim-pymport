@@ -59,44 +59,44 @@ describe 'locate and deploy:'
 
   it 'finds the target location'
     let [lineno, exact] = pymport#target_location(g:target, g:name)
-    Expect lineno == 6
+    Expect lineno == 7
     Expect exact == 0
     let g:target['module'] = 'thirdparty.stuff'
     let [lineno, exact] = pymport#target_location(g:target, g:name)
-    Expect lineno == 5
+    Expect lineno == 6
     Expect exact == 1
     let g:target['module'] = 'unmatched.stuff'
     let [lineno, exact] = pymport#target_location(g:target, g:name)
-    Expect lineno == 10
+    Expect lineno == 11
     Expect exact == -1
   end
 
   it 'appends an import statement'
-    call pymport#deploy(10, -1, g:target, g:name)
-    Expect getline('13') == 'from '.g:target['module'].' import '.g:name
+    call pymport#deploy(11, -1, g:target, g:name)
+    Expect getline('14') == 'from '.g:target['module'].' import '.g:name
   end
 
   it 'inserts an import statement'
-    call pymport#deploy(6, 0, g:target, g:name)
-    Expect getline('7') == 'from '.g:target['module'].' import '.g:name
+    call pymport#deploy(7, 0, g:target, g:name)
+    Expect getline('8') == 'from '.g:target['module'].' import '.g:name
   end
 
   it 'appends a name to an existing import statement'
     let g:target['module'] = 'thirdparty.fluff'
-    call pymport#deploy(6, 1, g:target, g:name)
-    Expect getline('6') == 'from '.g:target['module'].' import Fluff, '.g:name
+    call pymport#deploy(7, 1, g:target, g:name)
+    Expect getline('7') == 'from '.g:target['module'].' import Fluff, '.g:name
   end
 
   it 'appends a name to an existing import statement and exceeds the textwidth'
     let g:target['module'] = 'fourthparty.mudule'
-    call pymport#deploy(9, 1, g:target, g:name)
+    call pymport#deploy(10, 1, g:target, g:name)
     let part = ' import (LooooooooooooongButNotLongEnough,'
-    Expect getline('9') == 'from '.g:target['module'].part
+    Expect getline('10') == 'from '.g:target['module'].part
   end
 
   it 'integration'
     call pymport#import('Foobar')
-    Expect getline('13') == 'from bar.stuff import Foobar'
+    Expect getline('14') == 'from bar.stuff import Foobar'
   end
 end
 

@@ -85,7 +85,7 @@ function! pymport#best_match(imports, module) "{{{
   let last = get(a:imports, -1, [0])[0]
   let best = len(a:imports) > 0 ? [last, -1] : [0, 0]
   for entry in a:imports
-    if a:module == entry[1]
+    if a:module == entry[1] && getline(entry[0]) =~ '^from'
       let best = [entry[0], 1]
       break
     elseif pymport#package(entry[1]) == package
