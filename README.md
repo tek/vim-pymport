@@ -4,6 +4,12 @@
 
 **pymport** searches desired directories for the definition of a given python function or class and adds or manipulates an import at the proper location.
 
+## Usage
+
+For importing `<cword>`, use `<Plug>(pymport_cword)` or `:PymportCWord`.
+
+For an arbitrary identifier, `call pymport#import('name')`.
+
 ## Customization
 
 `pymport_paths` A list of directories to be searched
