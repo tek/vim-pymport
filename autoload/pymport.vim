@@ -118,10 +118,13 @@ function! pymport#add_parentheses(lineno) "{{{
   let @/ = ''
 endfunction "}}}
 
-function! pymport#format(lineno) "{{{
-  execute a:lineno.',. join'
-  if len(getline(a:lineno)) > &textwidth
-    call pymport#add_parentheses(a:lineno)
+function! pymport#format(lineno, lineno_end) "{{{
+  execute a:lineno.','.a:lineno_end.' join'
+  let line = getline(a:lineno)
+  if len(line) > &textwidth
+    if line !~ 'import (.*)'
+      call pymport#add_parentheses(a:lineno)
+    endif
     execute a:lineno 'normal! gqq'
   endif
 endfunction "}}}
@@ -137,7 +140,7 @@ function! pymport#deploy(lineno, exact, target, name) "{{{
     if a:exact == 1
       substitute /\()\?\)$/\=', '.a:name .submatch(1)/
       let @/ = ''
-      call call(g:pymport_formatter, [a:lineno])
+      call call(g:pymport_formatter, [a:lineno, line('.')])
     else
       if a:exact == -1
         put =''

@@ -94,6 +94,14 @@ describe 'locate and deploy:'
     Expect getline('10') == 'from '.g:target['module'].part
   end
 
+  it 'appends a name to an existing multiline import statement'
+    let g:target['module'] = 'fourthparty.sub'
+    call pymport#deploy(11, 1, g:target, g:name)
+    let part = ' import (LoooooooooooooooooooongAssName, Anoooother,'
+    Expect getline('11') == 'from '.g:target['module'].part
+    Expect getline('12') =~ '\s*AaaaaaaaandDone, '.g:name.')'
+  end
+
   it 'integration'
     call pymport#import('Foobar')
     Expect getline('14') == 'from bar.stuff import Foobar'
