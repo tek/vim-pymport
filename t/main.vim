@@ -108,6 +108,12 @@ describe 'locate and deploy:'
     Expect getline('14') == 'from bar.stuff import Foobar'
     let [bufnum, new_line, new_col, off] = getpos('.')
     Expect [new_line, new_col] == [old_line + 2, old_col]
+    " for some esoteric reason, a line break in the output of 'prove', the
+    " vim-flavor test runner, is removed by setting the ` mark in
+    " pymport#import(), which prevents prove from correctly assessing the
+    " test's success.
+    " printing something here fixes this.
+    echo ' '
   end
 end
 
