@@ -109,7 +109,7 @@ function! pymport#target_location(target, name) "{{{
 endfunction "}}}
 
 function! pymport#goto_end_of_import(lineno) "{{{
-  execute a:lineno.'normal! $'
+  execute a:lineno.' normal! $'
   call searchpair('(', '', ')')
 endfunction "}}}
 
@@ -138,7 +138,7 @@ function! pymport#deploy(lineno, exact, target, name) "{{{
   else
     call pymport#goto_end_of_import(a:lineno)
     if a:exact == 1
-      substitute /\()\?\)$/\=', '.a:name .submatch(1)/
+      keepjumps substitute /\()\?\)$/\=', '.a:name .submatch(1)/
       let @/ = ''
       call call(g:pymport_formatter, [a:lineno, line('.')])
     else
@@ -158,13 +158,20 @@ function! pymport#process(name, files) "{{{
   endif
 endfunction "}}}
 
+" main function
+" The initial location is remembered in the ` mark and navigated to in the
+" end. As this method leaves one entry at that same position on the jump
+" stack, a <c-o> keypress is simulated.
 function! pymport#import(name) "{{{
+  normal! m`
   let files = pymport#locations(a:name)
   if len(files) > 0
     call pymport#process(a:name, files)
   else
     call pymport#warn('No match for "'.a:name.'"!')
   endif
+  keepjumps normal! ``
+  call feedkeys("\<c-o>")
 endfunction "}}}
 
 if(!exists('*'.g:pymport_finder))

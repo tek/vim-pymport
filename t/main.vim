@@ -103,8 +103,11 @@ describe 'locate and deploy:'
   end
 
   it 'integration'
+    let [bufnum, old_line, old_col, off] = getpos('.')
     call pymport#import('Foobar')
     Expect getline('14') == 'from bar.stuff import Foobar'
+    let [bufnum, new_line, new_col, off] = getpos('.')
+    Expect [new_line, new_col] == [old_line + 2, old_col]
   end
 end
 
