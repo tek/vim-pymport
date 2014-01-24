@@ -1,11 +1,11 @@
-function! pymport#warn(msg) "{{{
+function! pymport#warn(msg) abort "{{{
   echohl WarningMsg
   echo 'pymport: '.a:msg
   echohl None
 endfunction "}}}
 
 " generate an absolute path name and strip a trailing /
-function! pymport#normalize_path(path) "{{{
+function! pymport#normalize_path(path) abort "{{{
   let path = fnamemodify(a:path, ':p')
   if path[-1:] == '/'
     let path = path[:-2]
@@ -14,7 +14,7 @@ function! pymport#normalize_path(path) "{{{
 endfunction "}}}
 
 " convert a file path to a dotted module path relative to a:basedir
-function! pymport#module(path, basedir) "{{{
+function! pymport#module(path, basedir) abort "{{{
   let path = pymport#normalize_path(a:path)
   let basedir = pymport#normalize_path(a:basedir)
   let prefix_len = len(basedir)
@@ -28,7 +28,7 @@ function! pymport#module(path, basedir) "{{{
   return substitute(path, '/', '.', 'g')
 endfunction "}}}
 
-function! pymport#greplike(cmdline, name, path) "{{{
+function! pymport#greplike(cmdline, name, path) abort "{{{
   let files = []
   let keywords = '^(class|def)'
   if filereadable(a:path) || isdirectory(a:path)
@@ -47,16 +47,16 @@ function! pymport#greplike(cmdline, name, path) "{{{
   return files
 endfunction "}}}
 
-function! pymport#grep(name, path) "{{{
+function! pymport#grep(name, path) abort "{{{
   return pymport#greplike("grep -n -E -r --include='*.py' '%s %s\\(' %s", a:name, a:path)
 endfunction "}}}
 
-function! pymport#ag(name, path) "{{{
+function! pymport#ag(name, path) abort "{{{
   return pymport#greplike('ag -G "\.py$" "%s %s\(" %s', a:name, a:path)
 endfunction "}}}
 
 " aggregate search results from all locations in g:pymport_paths
-function! pymport#locations(name) "{{{
+function! pymport#locations(name) abort "{{{
   let locations = []
   for path in g:pymport_paths
     let locations += call(g:pymport_finder, [a:name, path])
@@ -64,13 +64,13 @@ function! pymport#locations(name) "{{{
   return locations
 endfunction "}}}
 
-function! pymport#prompt_format(index, file) "{{{
+function! pymport#prompt_format(index, file) abort "{{{
   return '['. (a:index+1) .'] '.a:file['module'] .':'.a:file['lineno'] .'  '.
         \ a:file['content']
 endfunction "}}}
 
 " select an element of a:files by user input
-function! pymport#prompt(files) "{{{
+function! pymport#prompt(files) abort "{{{
   let lines = ['Multiple matches:'] +
         \ map(copy(a:files), 'pymport#prompt_format(v:key, v:val)')
   let choice = inputlist(lines)
@@ -78,19 +78,19 @@ function! pymport#prompt(files) "{{{
 endfunction "}}}
 
 " prompt the user to select a module if the name was found in more than one
-function! pymport#choose(files) "{{{
+function! pymport#choose(files) abort "{{{
   return len(a:files) > 1 ? pymport#prompt(a:files) : a:files[0]
 endfunction "}}}
 
 " return the module's part before the first '.'
-function! pymport#package(module) "{{{
+function! pymport#package(module) abort "{{{
   return split(a:module, '\.')[0]  
 endfunction "}}}
 
 " find the import using the exact target module or the last one matching the
 " target's package. return also an indicator if the module should be appended
 " to the line (1) or the import block (0) or placed separate (-1)
-function! pymport#best_match(imports, module) "{{{
+function! pymport#best_match(imports, module) abort "{{{
   let package = pymport#package(a:module)
   let last = get(a:imports, -1, [0])[0]
   let best = len(a:imports) > 0 ? [last, -1] : [0, 0]
@@ -107,9 +107,9 @@ endfunction "}}}
 
 " TODO skip lines with 'as'
 " collect all top level import statements and call the matching function
-function! pymport#target_location(target, name) "{{{
+function! pymport#target_location(target, name) abort "{{{
   let imports = []
-  function! Adder(imports) "{{{
+  function! Adder(imports) abort "{{{
     call add(a:imports, [line('.'), split(getline('.'))[1]])
   endfunction "}}}
   silent global /\%(^from\|import\) / call Adder(imports)
@@ -118,19 +118,19 @@ function! pymport#target_location(target, name) "{{{
 endfunction "}}}
 
 " find the end of a single or multi line import by checking for parentheses
-function! pymport#goto_end_of_import(lineno) "{{{
+function! pymport#goto_end_of_import(lineno) abort "{{{
   execute a:lineno.' normal! $'
   call searchpair('(', '', ')')
 endfunction "}}}
 
 " surround the imported names with parentheses
-function! pymport#add_parentheses(lineno) "{{{
+function! pymport#add_parentheses(lineno) abort "{{{
   execute a:lineno .'substitute /import \zs.*/(&)'
   let @/ = ''
 endfunction "}}}
 
 " format the change if it causes a line to exceed 'textwidth'
-function! pymport#format(lineno, lineno_end) "{{{
+function! pymport#format(lineno, lineno_end) abort "{{{
   execute a:lineno.','.a:lineno_end.' join'
   let line = getline(a:lineno)
   if len(line) > &textwidth
@@ -142,7 +142,7 @@ function! pymport#format(lineno, lineno_end) "{{{
 endfunction "}}}
 
 " TODO skip existing imports
-function! pymport#deploy(lineno, exact, target, name) "{{{
+function! pymport#deploy(lineno, exact, target, name) abort "{{{
   let import = 'from '.a:target['module'] .' import '. a:name
   if a:lineno == 0
     0 put =''
@@ -163,7 +163,7 @@ function! pymport#deploy(lineno, exact, target, name) "{{{
 endfunction "}}}
 
 " determine all candidates and query the user if more than one was found
-function! pymport#resolve(name) "{{{
+function! pymport#resolve(name) abort "{{{
   let target = {}
   let files = pymport#locations(a:name)
   if len(files) > 0
@@ -173,7 +173,7 @@ function! pymport#resolve(name) "{{{
 endfunction "}}}
 
 " find the appropriate spot for the import and deploy it
-function! pymport#process(target, name) "{{{
+function! pymport#process(target, name) abort "{{{
   let [lineno, exact] = call(g:pymport_target_locator, [a:target, a:name])
   return pymport#deploy(lineno, exact, a:target, a:name)
 endfunction "}}}
@@ -182,7 +182,7 @@ endfunction "}}}
 " The initial location is remembered in the ` mark and navigated to in the
 " end. As this method leaves one entry at that same position on the jump
 " stack, a <c-o> keypress is simulated.
-function! pymport#import(name) "{{{
+function! pymport#import(name) abort "{{{
   normal! m`
   let target = pymport#resolve(a:name)
   if len(target) > 0
