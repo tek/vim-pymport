@@ -1,6 +1,7 @@
 let g:pymport_paths = [getcwd().'/t/data/foo']
 let g:pymport_finder = 'pymport#grep'
 let g:pymport_formatter = 'pymport#format'
+let g:pymport_target_locator = 'pymport#target_location'
 
 describe 'path resolution:'
 

@@ -153,7 +153,7 @@ endfunction "}}}
 function! pymport#process(name, files) "{{{
   let target = pymport#choose(a:files)
   if len(target) > 0
-    let [lineno, exact] = pymport#target_location(target, a:name)
+    let [lineno, exact] = call(g:pymport_target_locator, [a:target, a:name])
     call pymport#deploy(lineno, exact, target, a:name)
   endif
 endfunction "}}}
@@ -173,11 +173,3 @@ function! pymport#import(name) "{{{
   keepjumps normal! ``
   call feedkeys("\<c-o>")
 endfunction "}}}
-
-if(!exists('*'.g:pymport_finder))
-  let g:pymport_finder = 'pymport#ag'
-endif
-
-if(!exists('*'.g:pymport_formatter))
-  let g:pymport_formatter = 'pymport#format'
-endif
