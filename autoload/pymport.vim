@@ -70,7 +70,7 @@ function! pymport#prompt(files) "{{{
   let lines = ['Multiple matches:'] +
         \ map(copy(a:files), 'pymport#prompt_format(v:key, v:val)')
   let choice = inputlist(lines)
-  return choice ? a:files[choice-1] : []
+  return choice > '0' ? a:files[choice-1] : {}
 endfunction "}}}
 
 function! pymport#choose(files) "{{{
