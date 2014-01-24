@@ -26,10 +26,12 @@ function! pymport#module(path, basedir) "{{{
   return substitute(path, '/', '.', 'g')
 endfunction "}}}
 
-function! pymport#greplike(cmd, name, path) "{{{
+function! pymport#greplike(cmdline, name, path) "{{{
   let files = []
+  let keywords = '^(class|def)'
   if filereadable(a:path) || isdirectory(a:path)
-    let output = system(a:cmd.' "^(class|def) '.a:name.'\(" '.a:path)
+    let cmd = printf(a:cmdline, keywords, a:name, a:path)
+    let output = system(cmd)
     for line in split(output, '\n')
       let fields = split(line, ':')
       call add(files, {
@@ -44,11 +46,11 @@ function! pymport#greplike(cmd, name, path) "{{{
 endfunction "}}}
 
 function! pymport#grep(name, path) "{{{
-  return pymport#greplike('grep -r --include="*.py"', a:name, a:path)
+  return pymport#greplike("grep -n -E -r --include='*.py' '%s %s\\(' %s", a:name, a:path)
 endfunction "}}}
 
 function! pymport#ag(name, path) "{{{
-  return pymport#greplike('ag -G ".*\.py"', a:name, a:path)
+  return pymport#greplike('ag -G "\.py$" "%s %s\(" %s', a:name, a:path)
 endfunction "}}}
 
 function! pymport#locations(name) "{{{
@@ -65,7 +67,6 @@ function! pymport#prompt_format(index, file) "{{{
 endfunction "}}}
 
 function! pymport#prompt(files) "{{{
-  echo 
   let lines = ['Multiple matches:'] +
         \ map(copy(a:files), 'pymport#prompt_format(v:key, v:val)')
   let choice = inputlist(lines)
