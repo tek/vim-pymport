@@ -4,6 +4,7 @@ function! pymport#warn(msg) "{{{
   echohl None
 endfunction "}}}
 
+" generate an absolute path name and strip a trailing /
 function! pymport#normalize_path(path) "{{{
   let path = fnamemodify(a:path, ':p')
   if path[-1:] == '/'
@@ -12,6 +13,7 @@ function! pymport#normalize_path(path) "{{{
   return path
 endfunction "}}}
 
+" convert a file path to a dotted module path relative to a:basedir
 function! pymport#module(path, basedir) "{{{
   let path = pymport#normalize_path(a:path)
   let basedir = pymport#normalize_path(a:basedir)
@@ -53,6 +55,7 @@ function! pymport#ag(name, path) "{{{
   return pymport#greplike('ag -G "\.py$" "%s %s\(" %s', a:name, a:path)
 endfunction "}}}
 
+" aggregate search results from all locations in g:pymport_paths
 function! pymport#locations(name) "{{{
   let locations = []
   for path in g:pymport_paths
@@ -66,6 +69,7 @@ function! pymport#prompt_format(index, file) "{{{
         \ a:file['content']
 endfunction "}}}
 
+" select an element of a:files by user input
 function! pymport#prompt(files) "{{{
   let lines = ['Multiple matches:'] +
         \ map(copy(a:files), 'pymport#prompt_format(v:key, v:val)')
@@ -73,14 +77,19 @@ function! pymport#prompt(files) "{{{
   return choice > '0' ? a:files[choice-1] : {}
 endfunction "}}}
 
+" prompt the user to select a module if the name was found in more than one
 function! pymport#choose(files) "{{{
   return len(a:files) > 1 ? pymport#prompt(a:files) : a:files[0]
 endfunction "}}}
 
+" return the module's part before the first '.'
 function! pymport#package(module) "{{{
   return split(a:module, '\.')[0]  
 endfunction "}}}
 
+" find the import using the exact target module or the last one matching the
+" target's package. return also an indicator if the module should be appended
+" to the line (1) or the import block (0) or placed separate (-1)
 function! pymport#best_match(imports, module) "{{{
   let package = pymport#package(a:module)
   let last = get(a:imports, -1, [0])[0]
@@ -97,27 +106,30 @@ function! pymport#best_match(imports, module) "{{{
 endfunction "}}}
 
 " TODO skip lines with 'as'
+" collect all top level import statements and call the matching function
 function! pymport#target_location(target, name) "{{{
-  let module = a:target['module']
   let imports = []
   function! Adder(imports) "{{{
     call add(a:imports, [line('.'), split(getline('.'))[1]])
   endfunction "}}}
   silent global /\%(^from\|import\) / call Adder(imports)
   let @/ = ''
-  return pymport#best_match(imports, module)
+  return pymport#best_match(imports, a:target['module'])
 endfunction "}}}
 
+" find the end of a single or multi line import by checking for parentheses
 function! pymport#goto_end_of_import(lineno) "{{{
   execute a:lineno.' normal! $'
   call searchpair('(', '', ')')
 endfunction "}}}
 
+" surround the imported names with parentheses
 function! pymport#add_parentheses(lineno) "{{{
   execute a:lineno .'substitute /import \zs.*/(&)'
   let @/ = ''
 endfunction "}}}
 
+" format the change if it causes a line to exceed 'textwidth'
 function! pymport#format(lineno, lineno_end) "{{{
   execute a:lineno.','.a:lineno_end.' join'
   let line = getline(a:lineno)
@@ -150,6 +162,7 @@ function! pymport#deploy(lineno, exact, target, name) "{{{
   endif
 endfunction "}}}
 
+" determine all candidates and query the user if more than one was found
 function! pymport#resolve(name) "{{{
   let target = {}
   let files = pymport#locations(a:name)
@@ -159,6 +172,7 @@ function! pymport#resolve(name) "{{{
   return target
 endfunction "}}}
 
+" find the appropriate spot for the import and deploy it
 function! pymport#process(target, name) "{{{
   let [lineno, exact] = call(g:pymport_target_locator, [a:target, a:name])
   return pymport#deploy(lineno, exact, a:target, a:name)
