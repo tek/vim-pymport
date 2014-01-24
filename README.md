@@ -16,8 +16,9 @@ For an arbitrary identifier, `call pymport#import('name')`.
 
 `pymport_finder` The name of a vim function used for searching
 
-`pymport_formatter` The name of a vim function used for final formatting of the
-import lines
+`pymport_formatter` The name of a vim function used for final formatting of the import lines
+
+`pymport_target_locator` The name of a vim function used to determine the line where the import should be placed
 
 If you want to search third-party packages, you could add a line like this to your config:
 

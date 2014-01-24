@@ -6,7 +6,8 @@ CONTENTS                                                   *pymport-contents*
     1. Intro........................................|pymport-intro|
     2. Commands.....................................|pymport-commands|
     3. Mappings.....................................|pymport-mappings|
-    4. Options......................................|pymport-options|
+    4. Functions....................................|pymport-functions|
+    5. Options......................................|pymport-options|
 
 ===============================================================================
 INTRO                                                         *pymport-intro*
@@ -24,16 +25,29 @@ COMMANDS                                                   *pymport-commands*
 ===============================================================================
 MAPPINGS                                                   *pymport-mappings*
 
-                                                   *'<Plug>(pymport_cword)'*
+                                                    *'<Plug>(pymport_cword)'*
 <Plug>(pymport_cword)
   Import the word under the cursor.
+
+===============================================================================
+FUNCTIONS                                                 *pymport-functions*
+
+                                                             *pymport#import*
+pymport#import(name)
+  Import an arbitrary name.
 
 ===============================================================================
 OPTIONS                                                     *pymport-options*
 
   |pymport_paths|..................A list of directories to be searched
+
   |pymport_finder|.................The name of a vim function used for
                                  searching
+
+  |pymport_target_locator|.........The name of a vim function used to
+                                 determine the line where the import should be
+                                 placed
+
   |pymport_formatter|..............The name of a vim function used for final
                                  formatting of the import lines
 
