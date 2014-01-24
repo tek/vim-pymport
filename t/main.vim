@@ -7,7 +7,7 @@ describe 'path resolution:'
   it 'finds a function'
     let ret = pymport#locations('foobar')
     Expect ret[1]['content'] != ret[0]['content']
-    Expect ret[0]['module'] == 'bar.stuff'
+    Expect ret[0]['module'] =~ 'bar\..*stuff'
   end
 
   it 'queries the user'
