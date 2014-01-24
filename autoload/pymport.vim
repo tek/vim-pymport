@@ -150,12 +150,18 @@ function! pymport#deploy(lineno, exact, target, name) "{{{
   endif
 endfunction "}}}
 
-function! pymport#process(name, files) "{{{
-  let target = pymport#choose(a:files)
-  if len(target) > 0
-    let [lineno, exact] = call(g:pymport_target_locator, [a:target, a:name])
-    call pymport#deploy(lineno, exact, target, a:name)
+function! pymport#resolve(name) "{{{
+  let target = {}
+  let files = pymport#locations(a:name)
+  if len(files) > 0
+    let target = pymport#choose(files)
   endif
+  return target
+endfunction "}}}
+
+function! pymport#process(target, name) "{{{
+  let [lineno, exact] = call(g:pymport_target_locator, [a:target, a:name])
+  return pymport#deploy(lineno, exact, a:target, a:name)
 endfunction "}}}
 
 " main function
@@ -164,9 +170,9 @@ endfunction "}}}
 " stack, a <c-o> keypress is simulated.
 function! pymport#import(name) "{{{
   normal! m`
-  let files = pymport#locations(a:name)
-  if len(files) > 0
-    call pymport#process(a:name, files)
+  let target = pymport#resolve(a:name)
+  if len(target) > 0
+    call pymport#process(target, a:name)
   else
     call pymport#warn('No match for "'.a:name.'"!')
   endif
