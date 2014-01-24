@@ -104,6 +104,7 @@ function! pymport#target_location(target, name) "{{{
     call add(a:imports, [line('.'), split(getline('.'))[1]])
   endfunction "}}}
   silent global /\%(^from\|import\) / call Adder(imports)
+  let @/ = ''
   return pymport#best_match(imports, module)
 endfunction "}}}
 
@@ -114,6 +115,7 @@ endfunction "}}}
 
 function! pymport#add_parentheses(lineno) "{{{
   execute a:lineno .'substitute /import \zs.*/(&)'
+  let @/ = ''
 endfunction "}}}
 
 function! pymport#format(lineno) "{{{
@@ -134,6 +136,7 @@ function! pymport#deploy(lineno, exact, target, name) "{{{
     call pymport#goto_end_of_import(a:lineno)
     if a:exact == 1
       substitute /\()\?\)$/\=', '.a:name .submatch(1)/
+      let @/ = ''
       call call(g:pymport_formatter, [a:lineno])
     else
       if a:exact == -1
