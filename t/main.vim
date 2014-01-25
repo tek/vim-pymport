@@ -2,6 +2,8 @@ let g:pymport_paths = [getcwd().'/t/data/foo']
 let g:pymport_finder = 'pymport#grep'
 let g:pymport_formatter = 'pymport#format'
 let g:pymport_target_locator = 'pymport#target_location'
+let g:pymport_package_precedence = ['fourthparty', 'secondparty', 
+      \ 'thirdparty']
 
 describe 'path resolution:'
 
@@ -68,7 +70,11 @@ describe 'locate and deploy:'
     Expect exact == 1
     let g:target['module'] = 'unmatched.stuff'
     let [lineno, exact] = pymport#target_location(g:target, g:name)
-    Expect lineno == 11
+    Expect lineno == 3
+    Expect exact == -1
+    let g:target['module'] = 'secondparty.stuff'
+    let [lineno, exact] = pymport#target_location(g:target, g:name)
+    Expect lineno == 7
     Expect exact == -1
   end
 
@@ -106,7 +112,7 @@ describe 'locate and deploy:'
   it 'integration'
     let [bufnum, old_line, old_col, off] = getpos('.')
     call pymport#import('Foobar')
-    Expect getline('14') == 'from bar.stuff import Foobar'
+    Expect getline('5') == 'from bar.stuff import Foobar'
     let [bufnum, new_line, new_col, off] = getpos('.')
     Expect [new_line, new_col] == [old_line + 2, old_col]
     " for some esoteric reason, a line break in the output of 'prove', the

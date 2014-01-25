@@ -20,6 +20,8 @@ For an arbitrary identifier, `call pymport#import('name')`.
 
 `pymport_target_locator` The name of a vim function used to determine the line where the import should be placed
 
+`pymport_package_precedence` A list of package names that determines the order in which import blocks from these are placed below any other packages
+
 If you want to search third-party packages, you could add a line like this to your config:
 
 `let g:pymport_paths += glob('$VIRTUAL_ENV/lib/python*/site-packages', 0, 1)`

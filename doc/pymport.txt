@@ -51,6 +51,10 @@ OPTIONS                                                     *pymport-options*
   |pymport_formatter|..............The name of a vim function used for final
                                  formatting of the import lines
 
+  |pymport_package_precedence|.....A list of package names that determines
+                                 the order in which import blocks from these
+                                 are placed below any other packages
+
 ===============================================================================
 CREDITS                                                     *pymport-credits*
 

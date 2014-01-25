@@ -87,6 +87,25 @@ function! pymport#package(module) abort "{{{
   return split(a:module, '\.')[0]  
 endfunction "}}}
 
+" find the position at which to insert a new package block according to
+" g:pymport_package_precedence. the first element will be placed at the
+" bottom.
+function! pymport#block_insertion_line(imports, package) abort "{{{
+  let packages = g:pymport_package_precedence
+  let position = index(packages, a:package)
+  if position == -1
+    let position = len(packages)
+  endif
+  let index = -1
+  for package in packages[:position]
+    while (index > 1 - len(a:imports)) &&
+          \ pymport#package(a:imports[index][1]) == package
+      let index -= 1
+    endwhile
+  endfor
+  return index == len(a:imports) ? 0 : a:imports[index][0]
+endfunction "}}}
+
 " find the import using the exact target module or the last one matching the
 " target's package. return also an indicator if the module should be appended
 " to the line (1) or the import block (0) or placed separate (-1)
@@ -102,6 +121,9 @@ function! pymport#best_match(imports, module) abort "{{{
       let best = [entry[0], 0]
     endif
   endfor
+  if best[1] == -1
+    let best[0] = pymport#block_insertion_line(a:imports, package)
+  endif
   return best
 endfunction "}}}
 
@@ -182,6 +204,8 @@ endfunction "}}}
 " The initial location is remembered in the ` mark and navigated to in the
 " end. As this method leaves one entry at that same position on the jump
 " stack, a <c-o> keypress is simulated.
+" TODO implement a method to determine where imports should begin (e.g. after
+" docstring)
 function! pymport#import(name) abort "{{{
   normal! m`
   let target = pymport#resolve(a:name)
