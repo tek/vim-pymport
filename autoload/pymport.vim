@@ -188,7 +188,7 @@ endfunction "}}}
 function! pymport#resolve(name) abort "{{{
   let target = {}
   let files = pymport#locations(a:name)
-  if len(files) > 0
+  if !empty(files)
     let target = pymport#choose(files)
   endif
   return target
@@ -209,7 +209,7 @@ endfunction "}}}
 function! pymport#import(name) abort "{{{
   normal! m`
   let target = pymport#resolve(a:name)
-  if len(target) > 0
+  if !empty(target)
     call pymport#process(target, a:name)
   else
     call pymport#warn('No match for "'.a:name.'"!')
