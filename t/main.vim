@@ -1,5 +1,5 @@
 let g:pymport_paths = [getcwd().'/t/data/foo']
-let g:pymport_finder = 'pymport#grep'
+let g:pymport_finder = 'pymport#ag'
 let g:pymport_formatter = 'pymport#format'
 let g:pymport_target_locator = 'pymport#target_location'
 let g:pymport_package_precedence = ['fourthparty', 'secondparty', 
@@ -20,12 +20,14 @@ describe 'path resolution:'
           \ 'lineno': '4',
           \ 'content': 'class Moo(object)',
           \ 'module': 'foo.bar.zoo',
+          \ 'forward_module': 'foo.bar.zoo',
           \ },
           \ {
           \ 'path': 'zoo/bar/foo',
           \ 'lineno': '73',
           \ 'content': 'def boo()',
           \ 'module': 'zoo.bar.foo',
+          \ 'forward_module': 'zoo.bar.foo',
           \ },
           \ ]
     
@@ -41,10 +43,25 @@ describe 'path resolution:'
   end
 end
 
+describe 'forward import'
+
+  it 'finds the highest module'
+    let module = pymport#forward_module(g:pymport_paths[0],
+          \ 'path.to.forward.test', 'ForwardTest')
+    Expect module == 'path.to'
+  end
+
+  it 'finds a * import'
+    let module = pymport#forward_module(g:pymport_paths[0],
+          \ 'path.to.forward.test', 'ForwardTest2')
+    Expect module == 'path.to.forward'
+  end
+end
+
 describe 'locate and deploy:'
 
   before
-    edit ./t/data/target_location.py
+    silent edit ./t/data/target_location.py
     set ft=python
     set textwidth=79
     let g:name = 'Leptospirosis'
@@ -53,6 +70,7 @@ describe 'locate and deploy:'
           \ 'lineno': '4',
           \ 'content': 'class Leptospirosis(object)',
           \ 'module': 'thirdparty.muff',
+          \ 'forward_module': 'thirdparty.muff',
           \ }
   end
 
@@ -64,15 +82,15 @@ describe 'locate and deploy:'
     let [lineno, exact] = pymport#target_location(g:target, g:name)
     Expect lineno == 7
     Expect exact == 0
-    let g:target['module'] = 'thirdparty.stuff'
+    let g:target['forward_module'] = 'thirdparty.stuff'
     let [lineno, exact] = pymport#target_location(g:target, g:name)
     Expect lineno == 6
     Expect exact == 1
-    let g:target['module'] = 'unmatched.stuff'
+    let g:target['forward_module'] = 'unmatched.stuff'
     let [lineno, exact] = pymport#target_location(g:target, g:name)
     Expect lineno == 3
     Expect exact == -1
-    let g:target['module'] = 'secondparty.stuff'
+    let g:target['forward_module'] = 'secondparty.stuff'
     let [lineno, exact] = pymport#target_location(g:target, g:name)
     Expect lineno == 7
     Expect exact == -1

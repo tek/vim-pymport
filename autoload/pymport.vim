@@ -4,6 +4,14 @@ function! pymport#warn(msg) abort "{{{
   echohl None
 endfunction "}}}
 
+function! pymport#system(cmd) abort "{{{
+  if exists(':VimProcRead')
+    return vimproc#system(a:cmd)
+  else
+    return system(a:cmd)
+  endif
+endfunction "}}}
+
 " generate an absolute path name and strip a trailing /
 function! pymport#normalize_path(path) abort "{{{
   let path = fnamemodify(a:path, ':p')
@@ -28,45 +36,77 @@ function! pymport#module(path, basedir) abort "{{{
   return substitute(path, '/', '.', 'g')
 endfunction "}}}
 
-function! pymport#greplike(cmdline, name, path) abort "{{{
+function! pymport#greplike(cmdline, pattern, path) abort "{{{
+  let lines = []
+  if filereadable(a:path) || isdirectory(a:path)
+    let cmd = printf("%s '%s' %s", a:cmdline, a:pattern, a:path)
+    let lines = split(pymport#system(cmd), '\n')
+  endif
+  return lines
+endfunction "}}}
+
+function! pymport#grep(pattern, path) abort "{{{
+  return pymport#greplike("grep -n -E -r --include='*.py'", a:pattern, a:path)
+endfunction "}}}
+
+function! pymport#ag(pattern, path) abort "{{{
+  return pymport#greplike("ag --line-numbers -G '\\.py$'", a:pattern, a:path)
+endfunction "}}}
+
+function! pymport#forward_module(basedir, module, name) abort "{{{
+  let path = a:basedir
+  let components = split(a:module, '\.')
+  let pattern = '\s*from .*\.' . components[-1] . ' import .*(\b' . a:name . '\b|\*)'
+  let module = ''
+  for component in components[:-2]
+    let module = module . component . '.'
+    let path = path . '/' . component
+    let file = path . '/__init__.py'
+    if len(call(g:pymport_finder, [pattern, file]))
+      return module[:-2]
+    endif
+  endfor
+  return a:module
+endfunction "}}}
+
+function! pymport#file(name, basedir, path, lineno, content) abort "{{{
+  let module = pymport#module(a:path, a:basedir)
+  return {
+        \ 'path': a:path,
+        \ 'lineno': a:lineno,
+        \ 'content': a:content,
+        \ 'module': module,
+        \ 'forward_module': pymport#forward_module(a:basedir, module, a:name),
+        \ }
+endfunction "}}}
+
+function! pymport#find_definition(name, path) abort "{{{
   let files = []
   let keywords = '^(class|def)'
+  let pattern = printf('%s %s\(', keywords, a:name)
   if filereadable(a:path) || isdirectory(a:path)
-    let cmd = printf(a:cmdline, keywords, a:name, a:path)
-    let output = system(cmd)
-    for line in split(output, '\n')
+    let output = call(g:pymport_finder, [pattern, a:path])
+    for line in output
       let fields = split(line, ':')
-      call add(files, {
-            \ 'path': fields[0],
-            \ 'lineno': fields[1],
-            \ 'content': fields[2],
-            \ 'module': pymport#module(fields[0], a:path),
-            \ })
+      call add(files, call('pymport#file', [a:name, a:path] + fields))
     endfor
   endif
   return files
-endfunction "}}}
-
-function! pymport#grep(name, path) abort "{{{
-  return pymport#greplike("grep -n -E -r --include='*.py' '%s %s\\(' %s", a:name, a:path)
-endfunction "}}}
-
-function! pymport#ag(name, path) abort "{{{
-  return pymport#greplike('ag -G "\.py$" "%s %s\(" %s', a:name, a:path)
 endfunction "}}}
 
 " aggregate search results from all locations in g:pymport_paths
 function! pymport#locations(name) abort "{{{
   let locations = []
   for path in g:pymport_paths
-    let locations += call(g:pymport_finder, [a:name, path])
+    let locations += pymport#find_definition(a:name, path)
   endfor
   return locations
 endfunction "}}}
 
+" TODO limit line length by by &columns
 function! pymport#prompt_format(index, file) abort "{{{
-  return '['. (a:index+1) .'] '.a:file['module'] .':'.a:file['lineno'] .'  '.
-        \ a:file['content']
+  return '['. (a:index+1) .'] '.a:file['forward_module'] .':'.a:file['lineno']
+        \ .'  '.  a:file['content']
 endfunction "}}}
 
 " select an element of a:files by user input
@@ -136,7 +176,7 @@ function! pymport#target_location(target, name) abort "{{{
   endfunction "}}}
   silent global /\%(^from\|import\) / call Adder(imports)
   let @/ = ''
-  return pymport#best_match(imports, a:target['module'])
+  return pymport#best_match(imports, a:target['forward_module'])
 endfunction "}}}
 
 " find the end of a single or multi line import by checking for parentheses
@@ -165,7 +205,7 @@ endfunction "}}}
 
 " TODO skip existing imports
 function! pymport#deploy(lineno, exact, target, name) abort "{{{
-  let import = 'from '.a:target['module'] .' import '. a:name
+  let import = 'from '.a:target['forward_module'] .' import '. a:name
   if a:lineno == 0
     0 put =''
     0 put =import
