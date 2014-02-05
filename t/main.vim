@@ -62,6 +62,7 @@ describe 'locate and deploy:'
 
   before
     silent edit ./t/data/target_location.py
+    call cursor(localtime() % line('$'), 5)
     set ft=python
     set textwidth=79
     let g:name = 'Leptospirosis'
@@ -80,57 +81,57 @@ describe 'locate and deploy:'
 
   it 'finds the target location'
     let [lineno, exact] = pymport#target_location(g:target, g:name)
-    Expect lineno == 7
+    Expect lineno == 11
     Expect exact == 0
     let g:target['forward_module'] = 'thirdparty.stuff'
     let [lineno, exact] = pymport#target_location(g:target, g:name)
-    Expect lineno == 6
+    Expect lineno == 10
     Expect exact == 1
     let g:target['forward_module'] = 'unmatched.stuff'
     let [lineno, exact] = pymport#target_location(g:target, g:name)
-    Expect lineno == 3
+    Expect lineno == 7
     Expect exact == -1
     let g:target['forward_module'] = 'secondparty.stuff'
     let [lineno, exact] = pymport#target_location(g:target, g:name)
-    Expect lineno == 7
+    Expect lineno == 11
     Expect exact == -1
   end
 
   it 'appends an import statement'
-    call pymport#deploy(11, -1, g:target, g:name)
-    Expect getline('14') == 'from '.g:target['module'].' import '.g:name
+    call pymport#deploy(15, -1, g:target, g:name)
+    Expect getline('18') == 'from '.g:target['module'].' import '.g:name
   end
 
   it 'inserts an import statement'
-    call pymport#deploy(7, 0, g:target, g:name)
-    Expect getline('8') == 'from '.g:target['module'].' import '.g:name
+    call pymport#deploy(11, 0, g:target, g:name)
+    Expect getline('12') == 'from '.g:target['module'].' import '.g:name
   end
 
   it 'appends a name to an existing import statement'
     let g:target['module'] = 'thirdparty.fluff'
-    call pymport#deploy(7, 1, g:target, g:name)
-    Expect getline('7') == 'from '.g:target['module'].' import Fluff, '.g:name
+    call pymport#deploy(11, 1, g:target, g:name)
+    Expect getline('11') == 'from '.g:target['module'].' import Fluff, '.g:name
   end
 
   it 'appends a name to an existing import statement and exceeds the textwidth'
     let g:target['module'] = 'fourthparty.mudule'
-    call pymport#deploy(10, 1, g:target, g:name)
+    call pymport#deploy(14, 1, g:target, g:name)
     let part = ' import (LooooooooooooongButNotLongEnough,'
-    Expect getline('10') == 'from '.g:target['module'].part
+    Expect getline('14') == 'from '.g:target['module'].part
   end
 
   it 'appends a name to an existing multiline import statement'
     let g:target['module'] = 'fourthparty.sub'
-    call pymport#deploy(11, 1, g:target, g:name)
+    call pymport#deploy(15, 1, g:target, g:name)
     let part = ' import (LoooooooooooooooooooongAssName, Anoooother,'
-    Expect getline('11') == 'from '.g:target['module'].part
-    Expect getline('12') =~ '\s*AaaaaaaaandDone, '.g:name.')'
+    Expect getline('15') == 'from '.g:target['module'].part
+    Expect getline('16') =~ '\s*AaaaaaaaandDone, '.g:name.')'
   end
 
   it 'integration'
     let [bufnum, old_line, old_col, off] = getpos('.')
     call pymport#import('Foobar')
-    Expect getline('5') == 'from bar.stuff import Foobar'
+    Expect getline('9') == 'from bar.stuff import Foobar'
     let [bufnum, new_line, new_col, off] = getpos('.')
     Expect [new_line, new_col] == [old_line + 2, old_col]
     " for some esoteric reason, a line break in the output of 'prove', the
