@@ -203,6 +203,29 @@ function! pymport#format(lineno, lineno_end) abort "{{{
   endif
 endfunction "}}}
 
+function! pymport#append_import_to_line(name, lineno) abort "{{{
+  keepjumps substitute /\()\?\)$/\=', '.a:name .submatch(1)/
+  let @/ = ''
+  call call(g:pymport_formatter, [a:lineno, line('.')])
+endfunction "}}}
+
+function! pymport#create_import_line(separate, line) abort "{{{
+  if a:separate
+    put =''
+  endif
+  put =a:line
+endfunction "}}}
+
+" given the line number of the last matching import, either append the name
+" to an exactly matching existing import line or create a new import
+function! pymport#insert_import(exact, name, lineno, import) abort "{{{
+  if a:exact == 1
+    call pymport#append_import_to_line(a:name, a:lineno)
+  else
+    call pymport#create_import_line(a:exact == -1, a:import)
+  endif
+endfunction "}}}
+
 " TODO skip existing imports
 function! pymport#deploy(lineno, exact, target, name) abort "{{{
   let import = 'from '.a:target['forward_module'] .' import '. a:name
@@ -211,16 +234,7 @@ function! pymport#deploy(lineno, exact, target, name) abort "{{{
     0 put =import
   else
     call pymport#goto_end_of_import(a:lineno)
-    if a:exact == 1
-      keepjumps substitute /\()\?\)$/\=', '.a:name .submatch(1)/
-      let @/ = ''
-      call call(g:pymport_formatter, [a:lineno, line('.')])
-    else
-      if a:exact == -1
-        put =''
-      endif
-      put =import
-    endif
+    call pymport#insert_import(a:exact, a:name, a:lineno, import)
   endif
 endfunction "}}}
 
