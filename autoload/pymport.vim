@@ -240,20 +240,39 @@ function! pymport#process(target, name) abort "{{{
   return pymport#deploy(lineno, exact, a:target, a:name)
 endfunction "}}}
 
-" main function
-" The initial location is remembered in the ` mark and navigated to in the
-" end. As this method leaves one entry at that same position on the jump
+" Save the current view state
+" The initial location is remembered in the ` mark and the remaining view
+" parameters are queried via winsaveview()
+function! pymport#save_view() abort "{{{
+  normal! mp
+  let b:pymport_saved_view = winsaveview()
+endfunction "}}}
+
+" Restore the initial view state
+" In case the import insertion created new lines, the ` mark holds the
+" correct position, while the line number obtained from winsaveview() isn't
+" updated.
+" As the whole procedure leaves one entry at that same position on the jump
 " stack, a <c-o> keypress is simulated.
+function! pymport#restore_view() abort "{{{
+  if exists('b:pymport_saved_view')
+    call winrestview(b:pymport_saved_view)
+    unlet b:pymport_saved_view
+  endif
+  normal! g`p
+  call feedkeys("\<c-o>")
+endfunction "}}}
+
+" main function
 " TODO implement a method to determine where imports should begin (e.g. after
 " docstring)
 function! pymport#import(name) abort "{{{
-  normal! m`
+  call pymport#save_view()
   let target = pymport#resolve(a:name)
   if !empty(target)
     call pymport#process(target, a:name)
   else
     call pymport#warn('No match for "'.a:name.'"!')
   endif
-  keepjumps normal! ``
-  call feedkeys("\<c-o>")
+  call pymport#restore_view()
 endfunction "}}}
