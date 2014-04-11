@@ -2,7 +2,7 @@ let g:pymport_paths = [getcwd().'/t/data/foo']
 let g:pymport_finder = 'pymport#ag'
 let g:pymport_formatter = 'pymport#format'
 let g:pymport_target_locator = 'pymport#target_location'
-let g:pymport_package_precedence = ['fourthparty', 'secondparty', 
+let g:pymport_package_precedence = ['fourthparty', 'secondparty',
       \ 'thirdparty']
 
 describe 'path resolution:'
@@ -30,7 +30,7 @@ describe 'path resolution:'
           \ 'forward_module': 'zoo.bar.foo',
           \ },
           \ ]
-    
+
     execute "normal! :let answer = pymport#choose(files)\<cr>2\<cr>"
     Expect answer['lineno'] == '73'
   end
@@ -140,6 +140,11 @@ describe 'locate and deploy:'
     " test's success.
     " printing something here fixes this.
     echo ' '
+  end
+
+  it 'filter duplicates'
+    let result = pymport#locations('Dupe')
+    Expect len(result) == 1
   end
 end
 

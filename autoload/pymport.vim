@@ -94,13 +94,21 @@ function! pymport#find_definition(name, path) abort "{{{
   return files
 endfunction "}}}
 
+function! pymport#remove_location_dups(locations) abort "{{{
+  function! Uniq(locs, index, loc) abort "{{{
+    return len(filter(a:locs[a:index + 1:],
+          \ 'a:loc.forward_module == v:val.forward_module')) == 0
+  endfunction "}}}
+  return filter(copy(a:locations), 'Uniq(a:locations, v:key, v:val)')
+endfunction "}}}
+
 " aggregate search results from all locations in g:pymport_paths
 function! pymport#locations(name) abort "{{{
   let locations = []
   for path in g:pymport_paths
     let locations += pymport#find_definition(a:name, path)
   endfor
-  return locations
+  return pymport#remove_location_dups(locations)
 endfunction "}}}
 
 " TODO limit line length by by &columns
