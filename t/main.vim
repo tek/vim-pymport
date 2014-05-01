@@ -147,7 +147,7 @@ describe 'locate and deploy:'
     call pymport#import('Integration2')
     Expect getline('15') == 'ToBreakTheLine, Integration2)'
     let [bufnum, new_line, new_col, off] = getpos('.')
-    Expect [new_line, new_col] == [old_line + 2, old_col]
+    Expect [new_line, new_col] == [old_line + 1, old_col]
     echo ' '
   end
 
