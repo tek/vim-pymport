@@ -142,6 +142,15 @@ describe 'locate and deploy:'
     echo ' '
   end
 
+  it 'integration 2'
+    let [bufnum, old_line, old_col, off] = getpos('.')
+    call pymport#import('Integration2')
+    Expect getline('15') == 'ToBreakTheLine, Integration2)'
+    let [bufnum, new_line, new_col, off] = getpos('.')
+    Expect [new_line, new_col] == [old_line + 2, old_col]
+    echo ' '
+  end
+
   it 'filter duplicates'
     let result = pymport#locations('Dupe')
     Expect len(result) == 1
