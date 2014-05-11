@@ -2,7 +2,9 @@
 
 ## Description
 
-**pymport** searches desired directories for the definition of a given python function or class and adds or manipulates an import at the proper location.
+**pymport** searches desired directories for the definition of a given python
+function, class or variable and adds or manipulates an import at the proper
+location.
 
 ## Usage
 
