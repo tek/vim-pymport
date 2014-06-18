@@ -276,13 +276,15 @@ endfunction "}}}
 " updated.
 " As the whole procedure leaves one entry at that same position on the jump
 " stack, a <c-o> keypress is simulated.
-function! pymport#restore_view() abort "{{{
+function! pymport#restore_view(pop_jump) abort "{{{
   if exists('b:pymport_saved_view')
     call winrestview(b:pymport_saved_view)
     unlet b:pymport_saved_view
   endif
   normal! g`p
-  call feedkeys("\<c-o>")
+  if a:pop_jump
+    call feedkeys("\<c-o>")
+  endif
 endfunction "}}}
 
 " main function
@@ -296,5 +298,5 @@ function! pymport#import(name) abort "{{{
   else
     call pymport#warn('No match for "'.a:name.'"!')
   endif
-  call pymport#restore_view()
+  call pymport#restore_view(!empty(target))
 endfunction "}}}
