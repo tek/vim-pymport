@@ -8,7 +8,7 @@ from os import path
 
 import thirdparty.fluff
 from thirdparty.stuff import Stuff
-from thirdparty.fluff import Fluff
+from thirdparty.fluff import Fluff  # NOQA
 
 from fourthparty import nothing
 from fourthparty.mudule import LooooooooooooongButNotLongEnough, ToBreakTheLine

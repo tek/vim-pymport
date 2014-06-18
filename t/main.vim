@@ -107,10 +107,11 @@ describe 'locate and deploy:'
     Expect getline('12') == 'from '.g:target['module'].' import '.g:name
   end
 
-  it 'appends a name to an existing import statement'
+  it 'appends a name to an existing import statement before a comment'
     let g:target['module'] = 'thirdparty.fluff'
     call pymport#deploy(11, 1, g:target, g:name)
     Expect getline('11') == 'from '.g:target['module'].' import Fluff, '.g:name
+          \ . '  # NOQA'
   end
 
   it 'appends a name to an existing import statement and exceeds the textwidth'

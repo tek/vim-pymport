@@ -195,7 +195,8 @@ endfunction "}}}
 
 " surround the imported names with parentheses
 function! pymport#add_parentheses(lineno) abort "{{{
-  execute a:lineno .'substitute /import \zs.*/(&)'
+  keepjumps execute a:lineno .
+        \ 'substitute /import \zs.\{-}\ze\%(\s*#.*\)\?$/(&)'
   let @/ = ''
 endfunction "}}}
 
@@ -212,7 +213,7 @@ function! pymport#format(lineno, lineno_end) abort "{{{
 endfunction "}}}
 
 function! pymport#append_import_to_line(name, lineno) abort "{{{
-  keepjumps substitute /\()\?\)$/\=', '.a:name .submatch(1)/
+  keepjumps substitute /\()\?\)\ze\%(\s*#.*\)\?$/\=', '.a:name .submatch(1)/
   let @/ = ''
   call call(g:pymport_formatter, [a:lineno, line('.')])
 endfunction "}}}
