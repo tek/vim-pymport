@@ -87,7 +87,7 @@ function! pymport#find_definition(name, path) abort "{{{
   if filereadable(a:path) || isdirectory(a:path)
     let output = call(g:pymport_finder, [pattern, a:path])
     for line in output
-      let fields = split(line, ':')
+      let fields = split(line, ':')[:2]
       call add(files, call('pymport#file', [a:name, a:path] + fields))
     endfor
   endif
