@@ -110,11 +110,11 @@ describe 'locate and deploy:'
   it 'appends a name to an existing import statement before a comment'
     let g:target['module'] = 'thirdparty.fluff'
     call pymport#deploy(11, 1, g:target, g:name)
-    Expect getline('11') == 'from '.g:target['module'].' import Fluff, '.g:name
-          \ . '  # NOQA'
+    Expect getline('11') == 'from '.g:target['module'].' import Fluff, ' .
+          \ g:name . '  # NOQA'
   end
 
-  it 'appends a name to an existing import statement and exceeds the textwidth'
+  it 'appends a name to an existing import and exceeds the textwidth'
     let g:target['module'] = 'fourthparty.mudule'
     call pymport#deploy(14, 1, g:target, g:name)
     let part = ' import (LooooooooooooongButNotLongEnough,'
