@@ -36,6 +36,8 @@ function! pymport#module(path, basedir) abort "{{{
   return substitute(path, '/', '.', 'g')
 endfunction "}}}
 
+" return output of the a:cmdline greplike process searching for pattern in
+" path as a list of lines
 function! pymport#greplike(cmdline, pattern, path) abort "{{{
   let lines = []
   if filereadable(a:path) || isdirectory(a:path)
@@ -53,10 +55,13 @@ function! pymport#ag(pattern, path) abort "{{{
   return pymport#greplike("ag --line-numbers -G '\\.py$'", a:pattern, a:path)
 endfunction "}}}
 
+" search all __init__ modules starting at a:basedir for forward imports of
+" a:name from a:module.
 function! pymport#forward_module(basedir, module, name) abort "{{{
   let path = a:basedir
   let components = split(a:module, '\.')
-  let pattern = '\s*from .*\.' . components[-1] . ' import .*(\b' . a:name . '\b|\*)'
+  let pattern = '\s*from .*\.' . components[-1] . ' import .*(\b' . a:name .
+        \ '\b|\*)'
   let module = ''
   for component in components[:-2]
     let module = module . component . '.'
@@ -69,7 +74,9 @@ function! pymport#forward_module(basedir, module, name) abort "{{{
   return a:module
 endfunction "}}}
 
-function! pymport#file(name, basedir, path, lineno, content) abort "{{{
+" extract the module path relative to a:basedir from a:path, find any forward
+" imports and create a definition metadata dict.
+function! pymport#definition(name, basedir, path, lineno, content) abort "{{{
   let module = pymport#module(a:path, a:basedir)
   return {
         \ 'path': a:path,
@@ -80,6 +87,8 @@ function! pymport#file(name, basedir, path, lineno, content) abort "{{{
         \ }
 endfunction "}}}
 
+" invoke the g:pymport_finder to locate definitions of a:name anywhere below
+" a:path and create definition dicts.
 function! pymport#find_definition(name, path) abort "{{{
   let files = []
   let keywords = '(class|def)'
@@ -88,12 +97,14 @@ function! pymport#find_definition(name, path) abort "{{{
     let output = call(g:pymport_finder, [pattern, a:path])
     for line in output
       let fields = split(line, ':')[:2]
-      call add(files, call('pymport#file', [a:name, a:path] + fields))
+      call add(files, call('pymport#definition', [a:name, a:path] + fields))
     endfor
   endif
   return files
 endfunction "}}}
 
+" filter the entries in a:locations that refer to the identical module, thus
+" resulting in the same import statement.
 function! pymport#remove_location_dups(locations) abort "{{{
   function! Uniq(locs, index, loc) abort "{{{
     return len(filter(a:locs[a:index + 1:],
@@ -156,7 +167,7 @@ endfunction "}}}
 
 " find the import using the exact target module or the last one matching the
 " target's package. return also an indicator if the module should be appended
-" to the line (1) or the import block (0) or placed separate (-1)
+" to the line (1) or the import block (0) or placed separate (-1).
 function! pymport#best_match(imports, module) abort "{{{
   let package = pymport#package(a:module)
   let last = get(a:imports, -1, [0])[0]
@@ -175,14 +186,25 @@ function! pymport#best_match(imports, module) abort "{{{
   return best
 endfunction "}}}
 
+" add the line number and second token, which is the module in both import
+" kinds, to a:imports if the import is below max_line (i.e. the first
+" class/def)
+function! s:add_import(imports, max_line) abort "{{{
+  if !a:max_line || line('.') < a:max_line
+    call add(a:imports, [line('.'), split(getline('.'))[1]])
+  endif
+endfunction "}}}
+
 " TODO skip lines with 'as'
-" collect all top level import statements and call the matching function
+" collect all top level import statements and call the matching function.
+" imports located below the first unintented class or function definition are
+" ignored.
 function! pymport#target_location(target, name) abort "{{{
   let imports = []
-  function! Adder(imports) abort "{{{
-    call add(a:imports, [line('.'), split(getline('.'))[1]])
-  endfunction "}}}
-  silent global /\%(^from\|import\) / call Adder(imports)
+  normal! 1G
+  keepjumps let header_end = search('\v^<(class|def) \w+\(', 'cn')
+  normal! ``
+  silent global /\%(^from\|import\) / call s:add_import(imports, header_end)
   let @/ = ''
   return pymport#best_match(imports, a:target['forward_module'])
 endfunction "}}}

@@ -50,3 +50,7 @@ class Test(object):
 
     def dummy(self):
         5 == 2 * 3
+
+
+from footer_import import Gruff
+from thirdparty import Everything
