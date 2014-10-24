@@ -48,11 +48,18 @@ function! pymport#greplike(cmdline, pattern, path) abort "{{{
 endfunction "}}}
 
 function! pymport#grep(pattern, path) abort "{{{
-  return pymport#greplike("grep -n -E -r --include='*.py'", a:pattern, a:path)
+  let output = pymport#greplike("grep -n -E -r --include='*.py'",
+        \ a:pattern, a:path)
+  return map(output, 'split(v:val, '':''[:2])')
 endfunction "}}}
 
 function! pymport#ag(pattern, path) abort "{{{
-  return pymport#greplike("ag --line-numbers -G '\\.py$'", a:pattern, a:path)
+  let output = pymport#greplike(g:pymport_ag_cmdline, a:pattern, a:path)
+  function! Split(line) abort "{{{
+    let parts = split(a:line, ':')
+    return parts[:1] + [parts[2]]
+  endfunction "}}}
+  return map(output, 'Split(v:val)')
 endfunction "}}}
 
 " search all __init__ modules starting at a:basedir for forward imports of
@@ -95,8 +102,7 @@ function! pymport#find_definition(name, path) abort "{{{
   let pattern = printf('^(%s %s\(|%s\s*=)', keywords, a:name, a:name)
   if filereadable(a:path) || isdirectory(a:path)
     let output = call(g:pymport_finder, [pattern, a:path])
-    for line in output
-      let fields = split(line, ':')[:2]
+    for fields in output
       call add(files, call('pymport#definition', [a:name, a:path] + fields))
     endfor
   endif
