@@ -149,7 +149,7 @@ endfunction "}}}
 
 " return the module's part before the first '.'
 function! pymport#package(module) abort "{{{
-  return split(a:module, '\.')[0]  
+  return split(a:module, '\.')[0]
 endfunction "}}}
 
 " find the position at which to insert a new package block according to
