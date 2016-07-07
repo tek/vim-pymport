@@ -324,6 +324,7 @@ function! pymport#import(name) abort "{{{
   let target = pymport#resolve(a:name)
   if !empty(target)
     call pymport#process(target, a:name)
+    echo 'Imported ' . target['forward_module'] . '.' . a:name
   else
     call pymport#warn('No match for "'.a:name.'"!')
   endif
