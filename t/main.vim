@@ -5,6 +5,7 @@ let g:pymport_target_locator = 'pymport#target_location'
 let g:pymport_package_precedence = ['fourthparty', 'secondparty',
       \ 'thirdparty']
 let g:pymport_ag_cmdline = "ag --vimgrep -G '\\.py$'"
+let g:pymport_choose_by_precedence = 0
 
 describe 'path resolution:'
 
@@ -32,7 +33,7 @@ describe 'path resolution:'
           \ },
           \ ]
 
-    execute "normal! :let answer = pymport#choose(files)\<cr>2\<cr>"
+    execute "normal! :let answer = pymport#choose(files, 0)\<cr>2\<cr>"
     Expect answer['lineno'] == '73'
   end
 
@@ -132,7 +133,7 @@ describe 'locate and deploy:'
 
   it 'integration'
     let [bufnum, old_line, old_col, off] = getpos('.')
-    call pymport#import('Foobar')
+    call pymport#import('Foobar', '')
     Expect getline('9') == 'from bar.stuff import Foobar'
     let [bufnum, new_line, new_col, off] = getpos('.')
     Expect [new_line, new_col] == [old_line + 2, old_col]
@@ -146,7 +147,7 @@ describe 'locate and deploy:'
 
   it 'integration 2'
     let [bufnum, old_line, old_col, off] = getpos('.')
-    call pymport#import('Integration2')
+    call pymport#import('Integration2', '')
     Expect getline('15') == 'ToBreakTheLine, Integration2)'
     let [bufnum, new_line, new_col, off] = getpos('.')
     Expect [new_line, new_col] == [old_line + 1, old_col]
@@ -162,7 +163,7 @@ end
 describe 'empty file:'
   it 'place target in the first line'
     0 put ='foo = 1'
-    call pymport#import('Foobar')
+    call pymport#import('Foobar', '')
     Expect getline('1') == 'from bar.stuff import Foobar'
     Expect getline('3') == 'foo = 1'
   end

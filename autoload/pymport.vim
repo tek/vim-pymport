@@ -143,8 +143,26 @@ function! pymport#prompt(files) abort "{{{
 endfunction "}}}
 
 " prompt the user to select a module if the name was found in more than one
-function! pymport#choose(files) abort "{{{
-  return len(a:files) > 1 ? pymport#prompt(a:files) : a:files[0]
+" If `a:prec` is 1 (via `g:pymport_choose_by_precedence`), default on the
+" match with the (unique) package name in `g:pymport_package_precedence`, in
+" the latter's order. If multiple matches are present, prompt.
+function! pymport#choose(files, prec) abort "{{{
+  if len(a:files) > 1
+    if a:prec
+      for name in g:pymport_package_precedence
+        let matches = filter(copy(a:files),
+              \ 'split(v:val.forward_module, ''\.'')[0] == name')
+        if len(matches) == 1
+          return matches[0]
+        elseif len(matches) > 1
+          break
+        endif
+      endfor
+    endif
+    return pymport#prompt(a:files)
+  else
+    return a:files[0]
+  endif
 endfunction "}}}
 
 " return the module's part before the first '.'
@@ -276,11 +294,11 @@ function! pymport#deploy(lineno, exact, target, name) abort "{{{
 endfunction "}}}
 
 " determine all candidates and query the user if more than one was found
-function! pymport#resolve(name) abort "{{{
+function! pymport#resolve(name, prec) abort "{{{
   let target = {}
   let files = pymport#locations(a:name)
   if !empty(files)
-    let target = pymport#choose(files)
+    let target = pymport#choose(files, a:prec)
   endif
   return target
 endfunction "}}}
@@ -319,9 +337,11 @@ endfunction "}}}
 " main function
 " TODO implement a method to determine where imports should begin (e.g. after
 " docstring)
-function! pymport#import(name) abort "{{{
+function! pymport#import(name, bang) abort "{{{
+  let bang = a:bang == '!'
+  let prec = g:pymport_choose_by_precedence != bang
   call pymport#save_view()
-  let target = pymport#resolve(a:name)
+  let target = pymport#resolve(a:name, prec)
   if !empty(target)
     call pymport#process(target, a:name)
     echo 'Imported ' . target['forward_module'] . '.' . a:name
