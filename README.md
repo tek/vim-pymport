@@ -6,9 +6,15 @@
 function, class or variable and adds or manipulates an import at the proper
 location.
 
+If multiple modules match the given identifier, the user is asked to choose.
+
+A package precedence list option determines which imports to choose
+automatically and where to place them.
+
 ## Usage
 
 For importing `<cword>`, use `<Plug>(pymport_cword)` or `:PymportCWord`.
+Using a bang `!` with `PymportCWord` toggles `pymport_choose_by_precedence`.
 
 For an arbitrary identifier, `call pymport#import('name')`.
 
@@ -24,7 +30,9 @@ For an arbitrary identifier, `call pymport#import('name')`.
 
 `pymport_package_precedence` A list of package names that determines the order in which import blocks from these are placed below any other packages
 
-If you want to search third-party packages, you could add a line like this to your config:
+`pymport_choose_by_precedence` If set, try to automatically pick an import if multiple results were found by consulting `pymport_package_precedence`. Toggled by `!`.
+
+If you wanted to search third-party packages, you could add a line like this to your config:
 
 `let g:pymport_paths += glob('$VIRTUAL_ENV/lib/python*/site-packages', 0, 1)`
 
