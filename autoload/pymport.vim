@@ -99,7 +99,7 @@ endfunction "}}}
 function! pymport#find_definition(name, path) abort "{{{
   let files = []
   let keywords = '(class|def)'
-  let pattern = printf('^(%s %s(\(|:)|%s\s*=)', keywords, a:name, a:name)
+  let pattern = printf('^(%s %s(\(|:)|%s\s*(: \w+)?\s*=)', keywords, a:name, a:name)
   if filereadable(a:path) || isdirectory(a:path)
     let output = call(g:pymport_finder, [pattern, a:path])
     for fields in output
