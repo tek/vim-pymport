@@ -4,7 +4,7 @@ let g:pymport_formatter = 'pymport#format'
 let g:pymport_target_locator = 'pymport#target_location'
 let g:pymport_package_precedence = ['fourthparty', 'secondparty',
       \ 'thirdparty']
-let g:pymport_ag_cmdline = "ag --vimgrep -G '\\.py$'"
+let g:pymport_ag_cmdline = "ag -s --vimgrep -G '\\.py$'"
 let g:pymport_choose_by_precedence = 0
 
 describe 'path resolution:'

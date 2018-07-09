@@ -48,8 +48,7 @@ function! pymport#greplike(cmdline, pattern, path) abort "{{{
 endfunction "}}}
 
 function! pymport#grep(pattern, path) abort "{{{
-  let output = pymport#greplike("grep -n -E -r --include='*.py'",
-        \ a:pattern, a:path)
+  let output = pymport#greplike("grep -n -E -r --include='*.py'", a:pattern, a:path)
   return map(output, 'split(v:val, '':''[:2])')
 endfunction "}}}
 
@@ -67,8 +66,7 @@ endfunction "}}}
 function! pymport#forward_module(basedir, module, name) abort "{{{
   let path = a:basedir
   let components = split(a:module, '\.')
-  let pattern = '\s*from .*\.' . components[-1] . ' import .*(\b' . a:name .
-        \ '\b|\*)'
+  let pattern = '\s*from .*\.' . components[-1] . ' import .*(\b' . a:name . '\b|\*)'
   let module = ''
   for component in components[:-2]
     let module = module . component . '.'
